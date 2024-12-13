@@ -1,10 +1,11 @@
 const { Connection, clusterApiUrl, PublicKey, Keypair, LAMPORTS_PER_SOL, Transaction, SystemProgram, sendAndConfirmTransaction, TransactionInstruction } = require("@solana/web3.js");
+const { payingPrivateKey } = require("./private_constants");
 
 const connection = new Connection(clusterApiUrl('devnet'));
 
 const acceptanceKeyString = 'CsEMb5UiVdQ6HS1YYAm87xM5x4o2Njy3YrTBYcyWLHot';
 /** @type {Iterable<number>} */
-const payingSecretKey = [];
+const payingSecretKey = payingPrivateKey; // Update with *_payer_secret_key.js - generated using create-private-key.js
 
 const acceptancePublicKey = new PublicKey(acceptanceKeyString);
 const payingKeypair = Keypair.fromSecretKey(Uint8Array.from(payingSecretKey));
