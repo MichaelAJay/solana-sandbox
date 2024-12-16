@@ -9,14 +9,17 @@ const {
 } = require("@solana/web3.js");
 const { writeFileSync } = require('fs');
 
+const args = process.argv.slice(2);
+
 /**
  * DO NOT USE ON MAINNET
  */
 // const connectionUrl = 'http://127.0.0.1:8899'; // local
 const connectionUrl = clusterApiUrl('devnet'); // devnet
-const fileName = 'primary_payer';
+const fileName = args[0]|| 'primary_payer';
 // Default false to avoid common 429 error. Setting to true will seed the account with SOL. If set to false, use faucet: https://faucet.solana.com 
-const createAccount = false;
+// Setting to true should be fine for local validator
+const createAccount = args[1] === 'true';
 
 (async () => {
   try {
@@ -25,11 +28,16 @@ const createAccount = false;
 
     if (createAccount) {
       const fromKeypair = Keypair.generate();
+
+      let parsedAirdropAmt = parseFloat(args[2]);
+      if (isNaN(parsedAirdropAmt)) {
+        parsedAirdropAmt = 5;
+      }
     
       // Airdrop SOL for transferring lamports to the created account
       const airdropSignature = await connection.requestAirdrop(
         fromKeypair.publicKey,
-        6 * LAMPORTS_PER_SOL
+        (parsedAirdropAmt + 1) * LAMPORTS_PER_SOL
       );
       await connection.confirmTransaction({ signature: airdropSignature });
   
@@ -37,7 +45,7 @@ const createAccount = false;
         SystemProgram.createAccount({
           fromPubkey: fromKeypair.publicKey,
           newAccountPubkey: newAccountKeypair.publicKey,
-          lamports: 5 * LAMPORTS_PER_SOL,
+          lamports: parsedAirdropAmt * LAMPORTS_PER_SOL,
           space: 0,
           programId: SystemProgram.programId
         })

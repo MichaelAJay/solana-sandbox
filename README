@@ -1,0 +1,14 @@
+### Local setup ###
+# Create a secret key & optionally fund account #
+node create-secret-key.js <[secret_key]> <[create_acct]> <[airdrop]>
+secret_key (optional): for file naming
+create_acct (optional): if 'true', will attempt to seed created address w/ SOL
+airdrop (optional): should be parseFloat-able. If not (or not included), & create_acct, will default to 5 SOL seed
+
+
+# Update pay.js #
+Update `payingSecretKey` with value from created file in previous step (<secret_key>_payer_secret_key.js)
+Configured to send to the listening address (SOL) (bp config invoiceAccounts.SOL.SOL)
+
+# display-keypair.js #
+Simple script to display a keypair's public and secret key strings given a secret key (number[])

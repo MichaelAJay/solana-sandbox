@@ -1,4 +1,5 @@
 const { Keypair } = require("@solana/web3.js");
+const { payingPrivateKey } = require("./private_constants");
 
 /**
  * This file is used to generate the public key/private key pair to act as the SYSTEM wallet for dev environment
@@ -10,7 +11,7 @@ const { Keypair } = require("@solana/web3.js");
  */
 
 // Your private key here
-const id = [];
+const id = payingPrivateKey;
 
 const keypair = Keypair.fromSecretKey(Uint8Array.from(id));
 console.log({publicKey: keypair.publicKey.toString(), secretKey: Buffer.from(keypair.secretKey).toString('hex')});

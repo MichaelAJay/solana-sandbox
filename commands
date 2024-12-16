@@ -1,0 +1,8 @@
+Enter container shell:
+docker exec -it solana-validator /bin/bash
+
+Change CLI to local validator:
+solana config set -ul
+
+Fund account:
+solana airdrop <amount> <recipient-address>
