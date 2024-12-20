@@ -23,6 +23,7 @@ const lamportsToSend = amt * LAMPORTS_PER_SOL;
 const memo = invoiceId || 'my_memo';
 
 async function main() {
+  const timeA = (new Date()).getTime();
   const transferTransaction = new Transaction().add(
     SystemProgram.transfer({
       fromPubkey: payingKeypair.publicKey,
@@ -30,6 +31,8 @@ async function main() {
       lamports: lamportsToSend
     })
   );
+  const timeB = (new Date()).getTime();
+  console.log(`Transfer instruction 1 takes ${timeB - timeA} ms`);
 
   transferTransaction.add(
     new TransactionInstruction({
@@ -40,9 +43,10 @@ async function main() {
       programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr')
     })
   );
-  
+  const timeC = (new Date()).getTime();
+  console.log(`Transfer instruction 2 takes ${timeC - timeB} ms`);
   const signature = await sendAndConfirmTransaction(connection, transferTransaction, [payingKeypair]);
-  console.log(signature);
+  console.log(signature, `took ${(new Date()).getTime() - timeC} ms`);
 }
 
 main().catch(err => { console.error(err) });
