@@ -61,7 +61,8 @@ const createAccount = args[1] === 'true';
      * IF YOU USE ON MAINNET, YOU COULD LEAK A LIVE SECRET KEY
      */
     const secretKey = JSON.stringify(Array.from(newAccountKeypair.secretKey));
-    writeFileSync(`${fileName}_payer_secret_key.js`, `export const ${fileName}_secretKey = ${secretKey};`)
+    const name = `${fileName}_secretKey`;
+    writeFileSync(`${fileName}_payer_secret_key.js`, `const ${name} = ${secretKey};\nmodule.exports = { ${name} }`)
     console.log(createAccount ? 'account created' : 'keypair created', newAccountKeypair.publicKey.toString());
   } catch (err) {
     console.error(err);

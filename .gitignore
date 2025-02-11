@@ -1,3 +1,5 @@
 node_modules/
 private_constants.js
 *_payer_secret_key.js
+mint-addresses.txt
+your-addresses.txt
