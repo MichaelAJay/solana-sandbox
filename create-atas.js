@@ -1,5 +1,5 @@
 const { Connection, Keypair, PublicKey } = require('@solana/web3.js');
-const { connectionUrl, stableCoinMintAddresses } = require('./constants');
+const { connectionUrl } = require('./constants');
 const { createAssociatedTokenAccount, createMint, mintToChecked } = require('@solana/spl-token');
 const { appendFileSync } = require('fs');
 const path = require('path');
@@ -8,6 +8,7 @@ const { payer, receiver } = require('./your-secret-keys.js');
  
 const tokenDecimals = 6; // Should be 6 for USDC & USDT proxies
 const tokensToMint = 10 ** tokenDecimals;
+const stableCoins = ['USDC_sol', 'USDT_sol'];
 
 // Create connection
 const connection = new Connection(connectionUrl);
@@ -74,7 +75,6 @@ const mintTokens = async (mintPublicKey, keypair, ataPublicKey) => {
         writeLineOut('your-addresses.txt', `SOL: ${payerKeypair.publicKey.toString()} (payer)`);
         writeLineOut('your-addresses.txt', `SOL: ${receiverKeypair.publicKey.toString()} (receiver)`)
 
-        const stableCoins = Object.keys(stableCoinMintAddresses);
         const currenciesToExport = []; // from mint-addresses.js module exports
         await Promise.all(stableCoins.map(async (currency) => {
             const mintPublicKey = await createTokenMint(payerKeypair);
