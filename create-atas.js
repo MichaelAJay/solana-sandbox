@@ -1,11 +1,10 @@
 const { Connection, Keypair, PublicKey } = require('@solana/web3.js');
-const { connectionUrl, stableCoins } = require('./constants');
+const { connectionUrl, stableCoinMintAddresses } = require('./constants');
 const { createAssociatedTokenAccount, createMint, mintToChecked } = require('@solana/spl-token');
 const { appendFileSync } = require('fs');
 const path = require('path');
 
-// Change the line below to match const { <yourname>_secretKey: payingPrivateKey } = require('./<yourname>_payer_secret_key');
-const { test_secretKey: payingPrivateKey } = require('./test_payer_secret_key');
+const { payer, receiver } = require('./your-secret-keys.js');
  
 const tokenDecimals = 6; // Should be 6 for USDC & USDT proxies
 const tokensToMint = 10 ** tokenDecimals;
@@ -32,15 +31,16 @@ const createTokenMint = async (keypair) => {
 /**
  * Determinstically derives ata account from SOL account
  * @param {PublicKey} mintPublicKey 
- * @param {Keypair} ownerAndFeePayer 
+ * @param {Keypair} owner
+ * @param {Keypair} feePayer
  * @returns {Promise<PublicKey>}
  */
-const createTokenAccount = async (mintPublicKey, ownerAndFeePayer) => {
+const createTokenAccount = async (mintPublicKey, owner, feePayer) => {
     const ataPublicKey = await createAssociatedTokenAccount(
         connection,
-        ownerAndFeePayer,
+        feePayer,
         mintPublicKey,
-        ownerAndFeePayer.publicKey
+        owner.publicKey
     );
     return ataPublicKey;
 }
@@ -69,20 +69,30 @@ const mintTokens = async (mintPublicKey, keypair, ataPublicKey) => {
         console.log('Connection is live');
 
         // Create keypair for creating & owning mints, creating token accounts & acceptance
-        const keypair = Keypair.fromSecretKey(Uint8Array.from(payingPrivateKey));
-        writeLineOut('your-addresses.txt', `SOL: ${keypair.publicKey.toString()}`);
+        const payerKeypair = Keypair.fromSecretKey(Uint8Array.from(payer));
+        const receiverKeypair = Keypair.fromSecretKey(Uint8Array.from(receiver));
+        writeLineOut('your-addresses.txt', `SOL: ${payerKeypair.publicKey.toString()} (payer)`);
+        writeLineOut('your-addresses.txt', `SOL: ${receiverKeypair.publicKey.toString()} (receiver)`)
 
+        const stableCoins = Object.keys(stableCoinMintAddresses);
         await Promise.all(stableCoins.map(async (currency) => {
-            const mintPublicKey = await createTokenMint(keypair);
+            const mintPublicKey = await createTokenMint(payerKeypair);
             writeLineOut('mint-addresses.txt', `${currency}: ${mintPublicKey.toString()}`);
 
-            const ataPublicKey = await createTokenAccount(mintPublicKey, keypair);
-            writeLineOut('your-addresses.txt', `${currency}: ${ataPublicKey.toString()}`);
+            const actors = ['payer', 'receiver'];
+            for (const actor of actors) {
+                const owner = actor === 'payer' ? payerKeypair : receiverKeypair;
 
-            // Note - third arg should be derived from second arg, as is done above - don't change that
-            await mintTokens(mintPublicKey, keypair, ataPublicKey);
+                const ataPublicKey = await createTokenAccount(mintPublicKey, owner, payerKeypair);
+                writeLineOut('your-addresses.txt', `${currency}: ${ataPublicKey.toString()} (${actor})`);
+                // Note - third arg should be derived from second arg, as is done above - don't change that
+                if (actor === 'payer') {
+                    await mintTokens(mintPublicKey, payerKeypair, ataPublicKey);
+                }
+            }
         }));
-        console.log('Complete');
+        console.log("Job's done");
+        console.log('Checkout mint-addresses.txt and your-addresses.txt')
     } catch (err) {
         console.error(err);
         process.exit(1);

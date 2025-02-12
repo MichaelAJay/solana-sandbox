@@ -1,14 +1,15 @@
-### Local setup ###
-# Create a secret key & optionally fund account #
-node create-secret-key.js <[secret_key]> <[create_acct]> <[airdrop]>
-secret_key (optional): for file naming
-create_acct (optional): if 'true', will attempt to seed created address w/ SOL
-airdrop (optional): should be parseFloat-able. If not (or not included), & create_acct, will default to 5 SOL seed
+npm i
 
+For public consumption, there are two primary things you'll want to be able to do:
 
-# Update pay.js #
-Update `payingSecretKey` with value from created file in previous step (<secret_key>_payer_secret_key.js)
-Configured to send to the listening address (SOL) (bp config invoiceAccounts.SOL.SOL)
+1) Create payer & receiver addresses (SOL and SPL ATAs)
+This requires creating mints. See instructions in create-acceptance-address-and-atas.md
 
-# display-keypair.js #
-Simple script to display a keypair's public and secret key strings given a secret key (number[])
+2) Pay
+See pay.md
+
+Extra functionality:
+1) Display keypair (display-keypair.js). Import a private key (num arr) from your secret keys, and name it 'id'
+2) Move SOL around (sol-transfer-utility.js). This is more for if you've hit your airdrop limits and need to move SOL from one account to another. This could happen if you generate new payer & receiver addresses.
+Import the "FROM" private key as "fromPrivateKey".
+Import the "TO" private key as "toPrivateKey"

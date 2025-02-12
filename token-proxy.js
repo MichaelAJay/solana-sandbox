@@ -23,7 +23,6 @@ const receiverSolPublicKey = new PublicKey(receiverPublicKeyString); // For acce
 
 const createTokenMint = async () => {
   try {
-    console.log('Starting createTokenMint');
     const mintPublicKey = await createMint(
       connection,
       feePayer, // fee payer
@@ -31,7 +30,6 @@ const createTokenMint = async () => {
       null, // freeze authority - IMMUTABLE
       tokenDecimals // decimals
     );
-    console.log('Mint created');
     return mintPublicKey;
   } catch (err) {
     console.error('err', err);
@@ -92,7 +90,6 @@ const mintTokens = async (mintPublicKey, ataPublicKey) => {
     writeLineOut(`mintPublicKey ${mintPublicKey.toBase58()}`);
 
     // Create deterministic ata address from SOL acceptance address
-    console.log('fiddin receiver ata public key');
     const receiverAtaPublicKey = await createTokenAccount(mintPublicKey, receiverSolPublicKey);
     writeLineOut('### Proxy receiver address for an SPL (e.g. USDC): ###');
     writeLineOut(`ataPublicKey (receiver) ${receiverAtaPublicKey.toBase58()}`);
@@ -100,10 +97,8 @@ const mintTokens = async (mintPublicKey, ataPublicKey) => {
     /**
      * Payer directly receives tokensToMint tokens
     */
-   console.log('fiddin payer ata public key');
     const payerAtaPublicKey = await createTokenAccount(mintPublicKey, senderSolPublicKey);
     writeLineOut(`ataPublicKey (payer) ${payerAtaPublicKey.toBase58()}`);
-    console.log('fiddin mint tokens');
     const mintTokenTxHash = await mintTokens(mintPublicKey, payerAtaPublicKey);
     writeLineOut(`txhash ${mintTokenTxHash}`);
 
