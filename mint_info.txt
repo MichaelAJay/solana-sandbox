@@ -1,5 +1,0 @@
-mintPublicKey GJQXYWMN6re8GeU3MiZbQC3SrsF4S1XQw64QHubuiHCU
-### Proxy receiver address for an SPL (e.g. USDC): ###
-ataPublicKey (receiver) 5W5h8BnUywL2sLbxzosd5x12VzXCg5nQNtWFy8EkdgSt
-ataPublicKey (payer) GWJxZ2iFZVQQeqVcYJg2rhu9RXwf2EiYWW3guGXroXTr
-txhash DDJxBWZ4egve971N5xpY8AAF84vNcMsugsspohf2SQ4BKUbkcYnQK8NTjDyeCv1bSENGo2RVqgqEtgF4ah9yNvL
