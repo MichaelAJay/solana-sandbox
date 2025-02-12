@@ -22,7 +22,7 @@ Read the two notes above, then airdrop 5 SOL to each of your addresses to initia
 If you accidentally use up all your airdrops, make sure each has been sent a small amount of SOL (0.01 is plenty). Use the sol-transfer-utility.js script.
 
 4) node create-atas.js
-Note: This has failed for me before, and then immediately succeeded on a rerun.
+Note: This has failed for me before, and then immediately succeeded on a rerun. If that happens, make sure to delete your mint-addresses.js file if necessary before rerunning.
 Second note: this one can take up to a few minutes to run.
 5) Open your-addresses.txt
 6) Confirm addresses

@@ -1,14 +1,15 @@
-const { connectionUrl, stableCoinMintAddresses } = require('./constants');
+const { connectionUrl } = require('./constants');
 const { Connection, Keypair, Transaction, TransactionInstruction, sendAndConfirmTransaction, PublicKey, SystemProgram, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const { payer: payerSecretKey, receiver: receiverSecretKey } = require('./your-secret-keys');
 const { createTransferCheckedInstruction } = require('@solana/spl-token');
+const mintAddresses = require('./mint-addresses');
 
 const args = process.argv.slice(2);
 const [currency, amtArg, invoiceId] = args;
-const validCurrencies = ['SOL', ...Object.keys(stableCoinMintAddresses)];
+const validCurrencies = ['SOL', ...Object.keys(mintAddresses)];
 
 if (!validCurrencies.includes(currency)) {
-    console.error(`First arg should be an expected token name - ${Object.keys(stableCoinMintAddresses).join(', ')}`);
+    console.error(`First arg should be "SOL" or an expected token name - ${Object.keys(mintAddresses).join(', ')}`);
     process.exit(1);
 };
 
@@ -19,8 +20,8 @@ if (isNaN(amtArg) || amtArg < 0) {
 const decimals = 6;
 const connection = new Connection(connectionUrl);
 const memo = invoiceId || 'invalid_memo';
-const payer = Keypair.from(Uint8Array.from(payerSecretKey));
-const receiver = Keypair.from(Uint8Array.from(receiverSecretKey));
+const payer = Keypair.fromSecretKey(Uint8Array.from(payerSecretKey));
+const receiver = Keypair.fromSecretKey(Uint8Array.from(receiverSecretKey));
 
 const paySol = async () => {
     const amt = parseFloat(amtArg);
@@ -45,9 +46,13 @@ const paySol = async () => {
 };
 const paySpl = async () => {
     const amt = parseFloat(amtArg) * 10 ** decimals; // decimals should match token mint's decimals - 6 for USDC & USDT
-    const mintPublicKey = new PublicKey(stableCoinMintAddresses[currency]);
-    const fromAtaPublicKey = (await connection.getParsedTokenAccountsByOwner(payer.publicKey, { mint: mintPublicKey }))[0];
-    const toAtaPublicKey = (await connection.getParsedTokenAccountsByOwner(receiver.publicKey, { mint: mintPublicKey }))[0];
+    const mintAddress = mintAddresses[currency];
+    if (!mintAddress) {
+        throw new Error(`Could not find mint address for ${currency}`);
+    }
+    const mintPublicKey = new PublicKey(mintAddress);
+    const fromAtaPublicKey = await getAtaPublicKey(payer.publicKey, mintPublicKey);
+    const toAtaPublicKey = await getAtaPublicKey(receiver.publicKey, mintPublicKey);
     if (!(fromAtaPublicKey && toAtaPublicKey)) {
         throw new Error(`Public keys not found for ${currency}`);
     };
@@ -71,8 +76,28 @@ const paySpl = async () => {
             programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr')
         })
     );
-    const signature = await sendAndConfirmTransaction(connection, transferTransaction, [payer]);
+    const signature = await sendAndConfirmTransaction(connection, tx, [payer]);
     return signature;
+
+    /**
+     * 
+     * @param {PublicKey} ownerPublicKey 
+     * @param {PublicKey} mintPublicKey 
+     */
+    async function getAtaPublicKey(ownerPublicKey, mintPublicKey) {
+        const result = await connection.getParsedTokenAccountsByOwner(ownerPublicKey, { mint: mintPublicKey });
+
+        const potentialErrorString = JSON.stringify({ owner: ownerPublicKey.toString(), mint: mintPublicKey.toString() });
+        if (!(Array.isArray(result.value) && result.value.length === 1)) {
+            console.error('Unexpected result for ata account retrieval', potentialErrorString);
+            process.exit(1);
+        }
+        if (!(result.value[0].pubkey instanceof PublicKey)) {
+            console.error('Unexpected result for ata pubkey', potentialErrorString);
+            process.exit(1);
+        }
+        return result.value[0].pubkey;
+    }
 };
 
 (async () => {

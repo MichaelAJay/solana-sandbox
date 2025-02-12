@@ -75,9 +75,12 @@ const mintTokens = async (mintPublicKey, keypair, ataPublicKey) => {
         writeLineOut('your-addresses.txt', `SOL: ${receiverKeypair.publicKey.toString()} (receiver)`)
 
         const stableCoins = Object.keys(stableCoinMintAddresses);
+        const currenciesToExport = []; // from mint-addresses.js module exports
         await Promise.all(stableCoins.map(async (currency) => {
             const mintPublicKey = await createTokenMint(payerKeypair);
-            writeLineOut('mint-addresses.txt', `${currency}: ${mintPublicKey.toString()}`);
+            // writeLineOut('mint-addresses.txt', `${currency}: ${mintPublicKey.toString()}`);
+            writeLineOut('mint-addresses.js', `const ${currency} = '${mintPublicKey.toString()}'`);
+            currenciesToExport.push(currency);
 
             const actors = ['payer', 'receiver'];
             for (const actor of actors) {
@@ -91,8 +94,9 @@ const mintTokens = async (mintPublicKey, keypair, ataPublicKey) => {
                 }
             }
         }));
+        writeLineOut('mint-addresses.js', `module.exports = { ${currenciesToExport.join(', ')} }`)
         console.log("Job's done");
-        console.log('Checkout mint-addresses.txt and your-addresses.txt')
+        console.log('Checkout mint-addresses.js and your-addresses.txt')
     } catch (err) {
         console.error(err);
         process.exit(1);

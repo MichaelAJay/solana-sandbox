@@ -2,6 +2,7 @@ node_modules/
 private_constants.js
 *secret_key.js
 mint-addresses.txt
+mint-addresses.js
 your-addresses.txt
 your-secret-keys.js
 your-addresses.js
