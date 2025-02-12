@@ -1,10 +1,14 @@
 To pay SOL, USDC_sol, or USDT_sol:
 
-0) Update the imported payer and receiver - but make sure each maintains that name:
-const { <yourPayerKey>: payer }  = require('./your-payer-secret-key');
-const { <yourReceiverKey>: receiver } = require('./your-receiver-secret-key');
-
 1) Run pay.js <currency> <amt> <invoiceId>
 currency should be in 'SOL', 'USDC_sol', 'USDT_sol'
 amt should be a positive number
 invoiceId should be an externId
+
+Here's a useful function you can add to your .zshrc or similar.
+function payOnSol() {
+    local currency=$1 # should be 'SOL', 'USDC_sol', or 'USDT_sol' - will exit otherwise
+    local amount=$2 # in SOL if SOL, in "base" currency if SPL (for instance, 10 if sending 10 USDC)
+    local memo=$3 # should be an externId - will default to 'invalid_memo' if not included
+    node /<your-path-to>/solana-sandbox.pay.js "$currency" "$amount" "$memo"
+}
