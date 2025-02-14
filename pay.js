@@ -29,7 +29,7 @@ const paySol = async () => {
         SystemProgram.transfer({
             fromPubkey: payer.publicKey,
             toPubkey: receiver.publicKey,
-            lamports: amt * LAMPORTS_PER_SOL
+            lamports: amt
         })
     );
     transferTransaction.add(
