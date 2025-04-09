@@ -1,4 +1,5 @@
 node_modules/
+integrations/
 private_constants.js
 *secret_key.js
 mint-addresses.txt

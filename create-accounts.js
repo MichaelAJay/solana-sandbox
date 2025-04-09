@@ -12,6 +12,12 @@ const path = require('path');
 const { connectionUrl } = require('./constants');
 
 const args = process.argv.slice(2);
+const filenames = {
+  // privateKeys: 'your-secret-keys.js',
+  // addresses: 'your-sol-addresses.txt',
+  privateKeys: 'sol-pkg-help-privates.js',
+  addresses: 'sol-pkg-help-addresses.txt',
+}
 
 // Default false to avoid common 429 error. Setting to true will seed the account with SOL. If set to false, use faucet: https://faucet.solana.com 
 // Setting to true should be fine for local validator
@@ -65,13 +71,13 @@ const createKeypair = async () => {
     for (const actor of actors) {
       const keypair = await createKeypair();
       const secretKey = JSON.stringify(Array.from(keypair.secretKey));
-      writeLineOut('your-secret-keys.js',`const ${actor} = ${secretKey}`);
-      writeLineOut('your-sol-addresses.txt', `${actor}: ${keypair.publicKey.toString()}`);
+      writeLineOut(filenames.privateKeys,`const ${actor} = ${secretKey}`);
+      writeLineOut(filenames.addresses, `${actor}: ${keypair.publicKey.toString()}`);
     }
 
-    writeLineOut('your-secret-keys.js', `module.exports = { ${actors.join(',')} }`);
+    writeLineOut(filenames.privateKeys, `module.exports = { ${actors.join(',')} }`);
     console.log("Job's done");
-    console.log('Check yoursecret-keys.js and your-sol-addresses.txt.')
+    console.log(`Check ${filenames.privateKeys} and ${filenames.addresses}.`)
   } catch (err) {
     console.error(err);
     throw err;

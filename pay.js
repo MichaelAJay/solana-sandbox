@@ -1,11 +1,11 @@
 const { connectionUrl } = require('./constants');
 const { Connection, Keypair, Transaction, TransactionInstruction, sendAndConfirmTransaction, PublicKey, SystemProgram, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const { payer: payerSecretKey, receiver: receiverSecretKey } = require('./your-secret-keys');
-const { createTransferCheckedInstruction } = require('@solana/spl-token');
+const { createTransferCheckedInstruction, createTransferInstruction, ASSOCIATED_TOKEN_PROGRAM_ID } = require('@solana/spl-token');
 const mintAddresses = require('./mint-addresses');
 
 const args = process.argv.slice(2);
-const [currency, amtArg, invoiceId] = args;
+const [currency, amtArg, invoiceId, skipMemoArg] = args;
 const validCurrencies = ['SOL', ...Object.keys(mintAddresses)];
 
 if (!validCurrencies.includes(currency)) {
@@ -22,6 +22,7 @@ const connection = new Connection(connectionUrl);
 const memo = invoiceId || 'invalid_memo';
 const payer = Keypair.fromSecretKey(Uint8Array.from(payerSecretKey));
 const receiver = Keypair.fromSecretKey(Uint8Array.from(receiverSecretKey));
+const skipMemo = skipMemoArg === '--skipMemo';
 
 const paySol = async () => {
     const amt = parseFloat(amtArg);
@@ -32,15 +33,17 @@ const paySol = async () => {
             lamports: amt
         })
     );
-    transferTransaction.add(
-        new TransactionInstruction({
-            keys: [
-                { pubkey: payer.publicKey, isSigner: true, isWritable: true }
-            ],
-            data: Buffer.from(memo, 'utf-8'),
-            programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr')
-        })
-    );
+    if (!skipMemo) {
+        transferTransaction.add(
+            new TransactionInstruction({
+                keys: [
+                    { pubkey: payer.publicKey, isSigner: true, isWritable: true }
+                ],
+                data: Buffer.from(memo, 'utf-8'),
+                programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr')
+            })
+        );
+    }
     const signature = await sendAndConfirmTransaction(connection, transferTransaction, [payer]);
     return signature;
 };
@@ -52,30 +55,46 @@ const paySpl = async () => {
     }
     const mintPublicKey = new PublicKey(mintAddress);
     const fromAtaPublicKey = await getAtaPublicKey(payer.publicKey, mintPublicKey);
+    // console.log('fromAtaPublicKey', fromAtaPublicKey);
     const toAtaPublicKey = await getAtaPublicKey(receiver.publicKey, mintPublicKey);
     if (!(fromAtaPublicKey && toAtaPublicKey)) {
         throw new Error(`Public keys not found for ${currency}`);
     };
 
+    // Creates TransferChecked instruction with programAddress 'Tokenkeg...'
     const tx = new Transaction().add(
         createTransferCheckedInstruction(
             fromAtaPublicKey,
             mintPublicKey,
             toAtaPublicKey,
             payer.publicKey, // from's owner
-            amt,
+            // amt,
+            amtArg,
             decimals
         )
     );
-    tx.add(
-        new TransactionInstruction({
-            keys: [
-                { pubkey: payer.publicKey, isSigner: true, isWritable: true }
-            ],
-            data: Buffer.from(memo, 'utf-8'),
-            programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr')
-        })
-    );
+    // const tx = new Transaction().add(
+    //     createTransferInstruction(
+    //         fromAtaPublicKey,
+    //         toAtaPublicKey,
+    //         payer.publicKey,
+    //         amt,
+    //         [],
+    //         ASSOCIATED_TOKEN_PROGRAM_ID
+    //     )
+    // )
+
+    if (!skipMemo) {
+        tx.add(
+            new TransactionInstruction({
+                keys: [
+                    { pubkey: payer.publicKey, isSigner: true, isWritable: true }
+                ],
+                data: Buffer.from(memo, 'utf-8'),
+                programId: new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr')
+            })
+        );
+    }
     const signature = await sendAndConfirmTransaction(connection, tx, [payer]);
     return signature;
 
